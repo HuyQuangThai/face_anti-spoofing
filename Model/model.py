@@ -22,7 +22,7 @@ class AntiSpoofingModel(nn.Module):
         self.encoder_layer = nn.TransformerEncoderLayer(
             d_model = self.embedding_dim,
             nhead = 8,
-            dim_feedforward=256,
+            dim_feedforward=1024,
             batch_first=True,
             dropout=0.1,
         )
@@ -44,9 +44,9 @@ class AntiSpoofingModel(nn.Module):
     def forward(self, x):
         b, c, h, w = x.shape
         x = self.projector(x)
-        x_flat = x.view(b, self.embedding_dim, h*w).permute(0, 2, 1)  # [B, H*W, C]
+        x_flat = x.view(b, c, h*w).permute(0, 2, 1)  # [B, H*W, C]
         features = self.encoder(x_flat)  # [B, H*W, C]
-        features_reshaped = features.permute(0, 2, 1).view(b, self.embedding_dim, h, w)  # [B, C, H, W]
+        features_reshaped = features.permute(0, 2, 1).view(b, c, h, w)  # [B, C, H, W]
         spoofing_map = self.decoder(features_reshaped)  # [B, 1, H, W]
         return spoofing_map
 
@@ -92,15 +92,14 @@ class Model(nn.Module):
             embedding_dim=512,
         )
     
-    def forward(self, x, update = 'both'):
+    def forward(self, x, update = 'spoofing'):
         features = self.backbone(x)
         mid_features = features['mid_features']  # [B, C, H, W]
         final_features = features['final_features']  # [B, C, H, W]
         
         b, c, h, w = mid_features.size()
-        mid_features_reshaped = mid_features.view(b, c, h*w).permute(0, 2, 1)  # [B, H*W, C]
                 
-        spoofing_map = self.anti_spoofing(mid_features_reshaped, b, c, h, w)  # [B, 1, H', W']
+        spoofing_map = self.anti_spoofing(mid_features)  # [B, 1, H', W']
         embeding_map = self.identification(final_features)
         
         if update == 'spoofing':
