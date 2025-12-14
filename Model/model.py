@@ -42,8 +42,8 @@ class AntiSpoofingModel(nn.Module):
         )
         
     def forward(self, x):
-        b, c, h, w = x.shape
         x = self.projector(x)
+        b, c, h, w = x.shape
         x_flat = x.view(b, c, h*w).permute(0, 2, 1)  # [B, H*W, C]
         features = self.encoder(x_flat)  # [B, H*W, C]
         features_reshaped = features.permute(0, 2, 1).view(b, c, h, w)  # [B, C, H, W]
@@ -98,7 +98,6 @@ class Model(nn.Module):
         final_features = features['final_features']  # [B, C, H, W]
         
         b, c, h, w = mid_features.size()
-                
         spoofing_map = self.anti_spoofing(mid_features)  # [B, 1, H', W']
         embeding_map = self.identification(final_features)
         
