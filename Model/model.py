@@ -12,12 +12,13 @@ class AntiSpoofingModel(nn.Module):
             input_channels=80,
             embedding_dim=128,
         ):
-        super(AntiSpoofingModel, self).__init__()        
+        super(AntiSpoofingModel, self).__init__()
         self.projector = nn.Conv2d(
             input_channels,
             embedding_dim,
             kernel_size=1,
         )
+        self.embedding_dim = embedding_dim
         self.encoder_layer = nn.TransformerEncoderLayer(
             d_model = self.embedding_dim,
             nhead = 8,
@@ -87,7 +88,7 @@ class Model(nn.Module):
             embedding_dim=128,
         )
         self.identification = IdentificationModel(
-            input_dim=self.backbone.num_features,
+            input_dim = 1280,
             embedding_dim=512,
         )
     
@@ -108,6 +109,5 @@ class Model(nn.Module):
             spoofing_map = spoofing_map.detach()
         else:
             pass
-        
         return spoofing_map, embeding_map
         

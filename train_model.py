@@ -9,27 +9,28 @@ from sklearn.model_selection import train_test_split
 from albumentations.pytorch import ToTensorV2
 import albumentations as A
 from torch.utils.data import Dataset, DataLoader
+import torch
 
 def train_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = Model()
 
-    checkpoint = torch.load("/kaggle/input/model-5/pytorch/default/1/model.pth", map_location=device)
+    # checkpoint = torch.load("/kaggle/input/model-5/pytorch/default/1/model.pth", map_location=device)
             
-    if 'model_state_dict' in checkpoint:
-        state_dict = checkpoint['model_state_dict']
-    else:
-        state_dict = checkpoint
+    # if 'model_state_dict' in checkpoint:
+    #     state_dict = checkpoint['model_state_dict']
+    # else:
+    #     state_dict = checkpoint
         
-    new_state_dict = {}
-    for k, v in state_dict.items():
-        if k.startswith('module.'):
-            name = k[7:]
-        else:
-            name = k
-        new_state_dict[name] = v
+    # new_state_dict = {}
+    # for k, v in state_dict.items():
+    #     if k.startswith('module.'):
+    #         name = k[7:]
+    #     else:
+    #         name = k
+    #     new_state_dict[name] = v
             
-    model.load_state_dict(new_state_dict)
+    # model.load_state_dict(new_state_dict)
 
     if torch.cuda.device_count() > 1:
         print(f"🔥 Đã kích hoạt {torch.cuda.device_count()} GPUs!")
@@ -89,8 +90,6 @@ def train_model():
         print("Chưa tìm thấy đường dẫn đúng, bạn hãy check lại os.listdir nhé!")
         print("Lỗi:", e)
 
-
-
     sampler = create_balanced_sampler(train_dataset)
     train_loader = DataLoader(
         train_dataset,
@@ -145,3 +144,7 @@ def train_model():
         else: torch.save(model.state_dict(), f"ddmodel_epoch_{epoch+1}.pth")
         print("-> Đã lưu model!")
     print("🎉 Đã huấn luyện xong!")
+    
+if __name__ == "__main__":
+    train_model()
+    
