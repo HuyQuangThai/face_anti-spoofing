@@ -144,7 +144,3 @@ def train_model():
         else: torch.save(model.state_dict(), f"ddmodel_epoch_{epoch+1}.pth")
         print("-> Đã lưu model!")
     print("🎉 Đã huấn luyện xong!")
-    
-if __name__ == "__main__":
-    train_model()
-    
