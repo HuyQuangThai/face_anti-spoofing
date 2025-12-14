@@ -93,14 +93,14 @@ def train_model():
     sampler = create_balanced_sampler(train_dataset)
     train_loader = DataLoader(
         train_dataset,
-        batch_size=256,
+        batch_size=128,
         sampler=sampler,
         shuffle=False,
         num_workers=2
     )
     val_loader = DataLoader(
         val_dataset,
-        batch_size=256,
+        batch_size=128,
         shuffle=False,
         num_workers=2
     )
