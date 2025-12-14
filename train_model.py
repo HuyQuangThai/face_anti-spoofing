@@ -14,22 +14,22 @@ def train_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = Model()
 
-    # checkpoint = torch.load("/kaggle/input/model-5/pytorch/default/1/model.pth", map_location=device)
+    checkpoint = torch.load("/kaggle/input/model-5/pytorch/default/1/model.pth", map_location=device)
             
-    # if 'model_state_dict' in checkpoint:
-    #     state_dict = checkpoint['model_state_dict']
-    # else:
-    #     state_dict = checkpoint
+    if 'model_state_dict' in checkpoint:
+        state_dict = checkpoint['model_state_dict']
+    else:
+        state_dict = checkpoint
         
-    # new_state_dict = {}
-    # for k, v in state_dict.items():
-    #     if k.startswith('module.'):
-    #         name = k[7:]
-    #     else:
-    #         name = k
-    #     new_state_dict[name] = v
+    new_state_dict = {}
+    for k, v in state_dict.items():
+        if k.startswith('module.'):
+            name = k[7:]
+        else:
+            name = k
+        new_state_dict[name] = v
             
-    # model.load_state_dict(new_state_dict)
+    model.load_state_dict(new_state_dict)
 
     if torch.cuda.device_count() > 1:
         print(f"🔥 Đã kích hoạt {torch.cuda.device_count()} GPUs!")
@@ -45,10 +45,20 @@ def train_model():
     LIST_TEST_FILE ="/kaggle/input/celeba-spoof-for-face-antispoofing/CelebA_Spoof_/CelebA_Spoof/metas/intra_test/test_label.txt"
 
     transform_train = A.Compose([
-        A.Perspective(scale=(0.05,0.1), keep_size=True, p=0.5),
-        A.Resize(height=256, width=256),
+        A.Perspective(scale=(0.05,0.15), keep_size=True, p=0.5),
+        A.RandomResizedCrop(size=(256,256), scale=(0.3, 1.0), ratio=(0.8,1.2), p=1.0),  
+        A.OneOf([
+            A.GaussianBlur(blur_limit=(3, 7)),
+            A.MotionBlur(blur_limit=5),
+        ], p=0.4),
+        A.ImageCompression(quality_range=(40, 60), p=0.8),
+        A.OneOf([
+            A.MultiplicativeNoise(multiplier=(0.9, 1.1), elementwise=True, p=0.5),        
+            A.ISONoise(color_shift=(0.02, 0.10), intensity=(0.1, 0.5))
+        ], p=0.8),
+        A.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1, p=0.7),
+        A.Downscale(scale_range=(0.3, 0.7), p=0.5),
         A.HorizontalFlip(p=0.5),
-        A.RandomBrightnessContrast(p=0.2),
         A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ToTensorV2()
     ])
@@ -128,7 +138,7 @@ def train_model():
         
         print(f"\n📊 KẾT QUẢ EPOCH {epoch+1}:")
         print(f"   -> Train Loss: {avg_train_loss:.4f}")
-        print(f"   -> Val Loss:   {avg_val_loss:.4f}") 
+        print(f"   -> Val Loss:   {avg_val_loss:.4f}")
         
         if isinstance(model, torch.nn.DataParallel):
             torch.save(model.module.state_dict(), f"ddmodel_epoch_{epoch+1}.pth")
